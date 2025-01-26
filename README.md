@@ -5,8 +5,6 @@ LLM Helpers are essential tools, scripts, and programs designed to simplify the 
 What is Free Software? - GNU Project - Free Software Foundation  
 https://www.gnu.org/philosophy/free-sw.html
 
-Here’s a simpler explanation of how to use the `describe_movie.sh` script:
-
 ## describe_movie.sh
 
 ### **What the Script Does**
@@ -57,7 +55,3 @@ This file will contain the AI's description of the "movie."
 ### **Requirements**
 - The script assumes you have a local AI model running at `http://<your-ip>:8080/v1/chat/completions`.
 - You need `curl` and `jq` installed on your system.
-
----
-
-Let me know if you need further clarification! 😊
