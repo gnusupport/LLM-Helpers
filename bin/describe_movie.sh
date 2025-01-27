@@ -39,12 +39,21 @@ for DIR in "$@"; do
     DIR_BASENAME=$(basename "$DIR")  # Extract the base name of the directory
     FILES=$(ls "$DIR")  # Get the list of files in the directory
     PROMPT=$(cat <<EOF
+### Instruction
+
+- no comments
+- no notes
+- no explainations
+- no comments on type of files or directories
+
 For directory "$DIR_BASENAME", which contains the following files:
 $FILES
 
 review if this sounds as name of movie and if you think it is movie,
 then describe the movie, the plot, the genre, and major actors in the
-form such as:
+following form.
+
+### Form
 
 Movie title: 
 
