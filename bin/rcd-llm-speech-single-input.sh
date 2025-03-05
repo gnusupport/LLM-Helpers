@@ -8,7 +8,7 @@
 notify-send "Speech recognition started..."
 
 # Define a temporary audio file for recording
-audio_file=$(mktemp /tmp/audio_recording_XXXXXX.wav)
+audio_file=$(mktemp $TMPDIR/audio-notes/speech/audio_recording_XXXXXX.wav)
 echo "Temporary audio file created: $audio_file"
 
 # Start recording with VAD using sox
@@ -26,7 +26,7 @@ echo "Recording finished."
 echo "Generating transcript..."
 
 # Use a temporary file to capture the output
-temp_file=$(mktemp /tmp/transcript_XXXXXX.txt)
+temp_file=$(mktemp $TMPDIR/audio-notes/speech/transcript_XXXXXX.txt)
 timeout 10s rcd-canary.sh "$audio_file" > "$temp_file" 2>&1
 exit_status=$?
 
@@ -38,6 +38,47 @@ if [ $exit_status -eq 0 ]; then
     echo "Transcript generated successfully."
     transcript=$(cat "$temp_file")
     echo "Transcript: $transcript"
+
+    # Define the date in the desired format
+    DATE=$(/usr/bin/date +%Y-%m-%d-%H-%M-%S)  # Adjust the date format as needed
+
+    SQL_COMMAND="INSERT INTO speech (speech_speechtypes, speech_name, speech_text) 
+    		      VALUES (1, 'Speech: $DATE', '$transcript')
+    		   RETURNING speech_id;"
+
+    # Execute the SQL command and capture the returned speech_id
+    SPEECH_ID=$(psql -q -U maddox -d rcdbusiness -t -c "$SQL_COMMAND")
+
+    # Check if the psql command was successful
+    if [ $? -eq 0 ] && [ -n "$SPEECH_ID" ]; then
+	echo "SQL command executed successfully. Inserted speech_id: $SPEECH_ID"
+
+	# Send the transcript to the embedding script and capture the output
+	EMBEDDING=$(echo "$transcript" | rcd-llm-get-embeddings.sh)
+
+	# Check if the embedding script was successful
+	if [ $? -eq 0 ]; then
+	    echo "Embedding generated successfully."
+
+	    # Insert the embedding into the speech_embeddings column using the speech_id
+	    UPDATE_COMMAND="UPDATE speech 
+                               SET speech_embeddings = '$EMBEDDING' 
+                             WHERE speech_id = $SPEECH_ID;"
+
+	    psql -U maddox -d rcdbusiness -t -c "$UPDATE_COMMAND"
+	    
+	    # Check if the update was successful
+	    if [ $? -eq 0 ]; then
+		echo "Embedding inserted into the database successfully."
+	    else
+		echo "Failed to insert embedding into the database."
+	    fi
+	else
+	    echo "Failed to generate embedding."
+	fi
+    else
+	echo "Failed to execute SQL command or no speech_id returned."
+    fi
 
     # Use xdotool to type the transcript
     echo "Typing transcript using xdotool..."
