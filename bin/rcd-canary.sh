@@ -4,7 +4,8 @@
 
 # Check if an audio file is provided as an argument
 if [ -z "$1" ]; then
-  echo "Usage: $0 <audio_file>"
+  echo "Usage: $0 <audio_file> [target_language]"
+  echo "Supported target languages: Spanish, French, German (default: English)"
   exit 1
 fi
 
@@ -17,6 +18,15 @@ PYTHON_SCRIPT="/mnt/data/LLM/nvidia/canary-1b.py"
 # Audio file provided as an argument
 AUDIO_FILE="$1"
 
+# Target language (optional, default: English)
+TARGET_LANGUAGE="${2:-English}"
+
+# Validate the target language
+if [[ "$TARGET_LANGUAGE" != "English" && "$TARGET_LANGUAGE" != "Spanish" && "$TARGET_LANGUAGE" != "French" && "$TARGET_LANGUAGE" != "German" ]]; then
+  echo "Error: Unsupported target language '$TARGET_LANGUAGE'. Supported languages: Spanish, French, German (default: English)."
+  exit 1
+fi
+
 # Activate the virtual environment
 source "$VENV_PATH/bin/activate"
 
@@ -26,8 +36,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Run the Python script with the audio file as an argument and capture the output
-output=$(python "$PYTHON_SCRIPT" "$AUDIO_FILE")
+# Run the Python script with the audio file and target language as arguments
+output=$(python "$PYTHON_SCRIPT" "$AUDIO_FILE" "$TARGET_LANGUAGE")
 
 # Check if the Python script ran successfully
 if [ $? -ne 0 ]; then
