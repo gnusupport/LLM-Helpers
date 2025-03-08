@@ -1,4 +1,6 @@
 #!/bin/bash
+# Example how to run embeddings model:
+# /usr/local/bin/llama-server -ngl 999 -v -c 8192 -ub 8192 --embedding --log-timestamps --host 192.168.1.68 --port 9999 -m /mnt/data/LLM/nomic-ai/quantized/nomic-embed-text-v1.5-Q8_0.gguf
 
 # Get LAN IP address
 HOST=$(/home/data1/protected/bin/rcd/get_ethernet_interface.sh)
